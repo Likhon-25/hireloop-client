@@ -2,9 +2,9 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { MenuIcon } from "lucide-react"
+import { LogOutIcon, MenuIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -16,6 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
@@ -31,6 +32,17 @@ const authLinks = {
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function getInitials(name?: string | null, email?: string | null) {
+  const source = name?.trim() || email?.trim() || "HireLoop"
+  const parts = source.split(/\s+/).filter(Boolean)
+  const initials =
+    parts.length > 1
+      ? `${parts[0][0]}${parts[parts.length - 1][0]}`
+      : source.slice(0, 2)
+
+  return initials.toUpperCase()
 }
 
 const buttonBase =
@@ -53,10 +65,34 @@ const getStartedClasses = cn(
 
 const Navbar = () => {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session } = authClient.useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
   const closeMobile = () => setMobileOpen(false)
+
+  const initials = session
+    ? getInitials(session.user.name, session.user.email)
+    : ""
+
+  const handleSignOut = async () => {
+    if (signingOut) return
+
+    setSigningOut(true)
+
+    try {
+      await authClient.signOut()
+      closeMobile()
+      router.push("/")
+      router.refresh()
+    } catch (cause) {
+      console.error("[hireloop:navbar] sign out failed", cause)
+    } finally {
+      setSigningOut(false)
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -122,13 +158,40 @@ const Navbar = () => {
             <Separator orientation="vertical" className="bg-white/25" />
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link href={authLinks.signIn.href} className={signInClasses}>
-              {authLinks.signIn.label}
-            </Link>
-            <Link href={authLinks.getStarted.href} className={getStartedClasses}>
-              {authLinks.getStarted.label}
-            </Link>
+          <div className="flex items-center gap-3">
+            {session ? (
+              <>
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-[#9b95ff] ring-1 ring-brand/25 ring-inset">
+                    {initials}
+                  </span>
+                  <span className="max-w-[130px] truncate text-sm font-medium text-white/90">
+                    {session.user.name || session.user.email}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="h-[38px] gap-1.5 rounded-lg px-3 text-sm font-medium text-white/65 hover:bg-white/5 hover:text-white"
+                >
+                  <LogOutIcon aria-hidden="true" className="size-4" />
+                  {signingOut ? "Signing Out..." : "Sign Out"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href={authLinks.signIn.href} className={signInClasses}>
+                  {authLinks.signIn.label}
+                </Link>
+                <Link
+                  href={authLinks.getStarted.href}
+                  className={getStartedClasses}
+                >
+                  {authLinks.getStarted.label}
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -196,26 +259,52 @@ const Navbar = () => {
             </nav>
 
             <div className="mt-auto flex flex-col gap-3 border-t border-white/10 p-5">
-              <Link
-                href={authLinks.signIn.href}
-                onClick={closeMobile}
-                className={cn(
-                  signInClasses,
-                  "h-11 w-full text-base"
-                )}
-              >
-                {authLinks.signIn.label}
-              </Link>
-              <Link
-                href={authLinks.getStarted.href}
-                onClick={closeMobile}
-                className={cn(
-                  getStartedClasses,
-                  "h-12 w-full text-base"
-                )}
-              >
-                {authLinks.getStarted.label}
-              </Link>
+              {session ? (
+                <>
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-[#9b95ff] ring-1 ring-brand/25 ring-inset">
+                      {initials}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">
+                        {session.user.name}
+                      </p>
+                      <p className="truncate text-xs text-white/45">
+                        {session.user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={handleSignOut}
+                    disabled={signingOut}
+                    className="h-12 w-full gap-2 rounded-lg border border-white/10 bg-white/[0.03] text-base font-medium text-white hover:bg-white/[0.07]"
+                  >
+                    <LogOutIcon aria-hidden="true" className="size-4" />
+                    {signingOut ? "Signing Out..." : "Sign Out"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={authLinks.signIn.href}
+                    onClick={closeMobile}
+                    className={cn(signInClasses, "h-11 w-full text-base")}
+                  >
+                    {authLinks.signIn.label}
+                  </Link>
+                  <Link
+                    href={authLinks.getStarted.href}
+                    onClick={closeMobile}
+                    className={cn(
+                      getStartedClasses,
+                      "h-12 w-full text-base"
+                    )}
+                  >
+                    {authLinks.getStarted.label}
+                  </Link>
+                </>
+              )}
             </div>
           </SheetContent>
         </Sheet>

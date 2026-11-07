@@ -1,11 +1,14 @@
-import React from 'react';
+import type { Metadata } from "next"
+
+import AuthForm from "@/components/auth/auth-form"
+
+export const metadata: Metadata = {
+  title: "Sign In — HireLoop",
+  description: "Sign in to your HireLoop account and continue your job search.",
+}
 
 const SignInPage = () => {
-    return (
-        <div>
-            Sign In page
-        </div>
-    );
-};
+  return <AuthForm mode="sign-in" />
+}
 
-export default SignInPage;
+export default SignInPage
