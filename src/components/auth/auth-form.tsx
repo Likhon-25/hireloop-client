@@ -3,7 +3,14 @@
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { EyeIcon, EyeOffIcon } from "lucide-react"
+import {
+  BriefcaseBusinessIcon,
+  CheckIcon,
+  EyeIcon,
+  EyeOffIcon,
+  ShieldCheckIcon,
+  UserRoundSearchIcon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,6 +29,27 @@ const tabs = [
 const fieldClasses =
   "h-12 rounded-xl border-white/10 bg-white/[0.03] px-3.5 text-base text-white placeholder:text-white/35 focus-visible:border-brand/60 focus-visible:ring-brand/20 dark:bg-white/[0.03] md:text-base"
 
+const roleOptions = [
+  {
+    value: "seeker",
+    label: "Seeker",
+    description: "Find jobs",
+    icon: UserRoundSearchIcon,
+  },
+  {
+    value: "recruiter",
+    label: "Recruiter",
+    description: "Hire talent",
+    icon: BriefcaseBusinessIcon,
+  },
+  {
+    value: "admin",
+    label: "Admin",
+    description: "Manage platform",
+    icon: ShieldCheckIcon,
+  },
+] as const
+
 const AuthForm = ({ mode }: { mode: AuthMode }) => {
   const router = useRouter()
   const isSignIn = mode === "sign-in"
@@ -30,6 +58,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const [selectedRole, setSelectedRole] = useState("seeker")
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -44,6 +73,8 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     const email = String(data.email ?? "").trim()
     const password = String(data.password ?? "")
 
+    const role = String(data.role ?? "seeker")
+
     if (!isSignIn && password !== data.confirmPassword) {
       setError("Passwords do not match. Please try again.")
       return
@@ -52,17 +83,24 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     setPending(true)
 
     try {
-      const result = isSignIn
-        ? await authClient.signIn.email({
-            email,
-            password,
-            rememberMe: data.rememberMe === "on",
-          })
-        : await authClient.signUp.email({
-            name: String(data.name ?? "").trim(),
-            email,
-            password,
-          })
+      let result
+
+      if (isSignIn) {
+        result = await authClient.signIn.email({
+          email,
+          password,
+          rememberMe: data.rememberMe === "on",
+        })
+      } else {
+        const signUpData = {
+          name: String(data.name ?? "").trim(),
+          email,
+          password,
+          role,
+        }
+
+        result = await authClient.signUp.email(signUpData)
+      }
 
       if (result.error) {
         setError(
@@ -147,6 +185,69 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                   disabled={pending}
                   className={fieldClasses}
                 />
+              </div>
+            )}
+
+            {isSignIn ? null : (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="role-seeker"
+                  className="block text-sm font-medium text-white/80 mb-2"
+                >
+                  Account type
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {roleOptions.map((role) => {
+                    const Icon = role.icon
+                    const selected = selectedRole === role.value
+
+                    return (
+                      <label
+                        key={role.value}
+                        htmlFor={`role-${role.value}`}
+                        className={cn(
+                          "relative flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border px-2 py-3 text-center transition-all duration-200 select-none",
+                          "hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] focus-within:ring-2 focus-within:ring-brand/60",
+                          selected
+                            ? "border-brand bg-brand/15 text-white shadow-[0_8px_24px_-12px_rgba(92,83,254,0.8)]"
+                            : "border-white/10 bg-white/[0.03] text-white/65"
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          id={`role-${role.value}`}
+                          name="role"
+                          value={role.value}
+                          checked={selected}
+                          onChange={() => setSelectedRole(role.value)}
+                          disabled={pending}
+                          className="sr-only"
+                        />
+                        {selected && (
+                          <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-brand text-white shadow-lg">
+                            <CheckIcon aria-hidden="true" className="size-3 stroke-[3]" />
+                          </span>
+                        )}
+                        <Icon
+                          aria-hidden="true"
+                          className={cn(
+                            "mb-2 size-5",
+                            selected ? "text-[#9c96ff]" : "text-white/45"
+                          )}
+                        />
+                        <span className="text-sm font-semibold">{role.label}</span>
+                        <span
+                          className={cn(
+                            "mt-0.5 text-[10px] leading-4",
+                            selected ? "text-white/60" : "text-white/35"
+                          )}
+                        >
+                          {role.description}
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
               </div>
             )}
 

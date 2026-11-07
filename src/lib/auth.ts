@@ -1,9 +1,9 @@
-import { betterAuth } from "better-auth"
-import { MongoClient } from "mongodb"
-import { mongodbAdapter } from "@better-auth/mongo-adapter"
+import { betterAuth } from "better-auth";
+import { MongoClient } from "mongodb";
+import { mongodbAdapter } from "@better-auth/mongo-adapter";
 
-const client = new MongoClient(process.env.BETTER_AUTH_DB_URI as string)
-const db = client.db("hireloopdb")
+const client = new MongoClient(process.env.BETTER_AUTH_DB_URI as string);
+const db = client.db("hireloopdb");
 
 const googleProvider =
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -13,7 +13,7 @@ const googleProvider =
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         },
       }
-    : undefined
+    : undefined;
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -21,8 +21,16 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: ['seeker', 'recruiter', 'admin'],
+        input: true,
+      },
+    },
+  },
   ...(googleProvider ? { socialProviders: googleProvider } : {}),
   database: mongodbAdapter(db, {
     client,
   }),
-})
+});
