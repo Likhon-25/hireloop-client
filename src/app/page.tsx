@@ -1,8 +1,9 @@
+import Hero from "@/components/hero"
 
 export default function Home() {
   return (
-    <div>
-    Assalamulaikum
-    </div>
-  );
+    <main className="flex-1">
+      <Hero />
+    </main>
+  )
 }

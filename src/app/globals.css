@@ -1,3 +1,141 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-nav: var(--nav);
+  --color-nav-border: var(--nav-border);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  --background: #010103;
+  --foreground: #ededef;
+  --card: #0b0b10;
+  --card-foreground: #ededef;
+  --popover: #101015;
+  --popover-foreground: #ededef;
+  --primary: #5c53fe;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1a1f;
+  --secondary-foreground: #ededef;
+  --muted: #17171c;
+  --muted-foreground: #a1a1aa;
+  --accent: #1d1d24;
+  --accent-foreground: #ffffff;
+  --destructive: #f04452;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #5c53fe;
+  --chart-1: #5c53fe;
+  --chart-2: #22c55e;
+  --chart-3: #f97316;
+  --chart-4: #eab308;
+  --chart-5: #06b6d4;
+  --brand: #5c53fe;
+  --brand-foreground: #ffffff;
+  --nav: #1a1a1f;
+  --nav-border: rgba(255, 255, 255, 0.07);
+  --sidebar: #0b0b10;
+  --sidebar-foreground: #ededef;
+  --sidebar-primary: #5c53fe;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1d1d24;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #5c53fe;
+}
+
+.dark {
+  --background: #010103;
+  --foreground: #ededef;
+  --card: #0b0b10;
+  --card-foreground: #ededef;
+  --popover: #101015;
+  --popover-foreground: #ededef;
+  --primary: #5c53fe;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1a1f;
+  --secondary-foreground: #ededef;
+  --muted: #17171c;
+  --muted-foreground: #a1a1aa;
+  --accent: #1d1d24;
+  --accent-foreground: #ffffff;
+  --destructive: #f04452;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #5c53fe;
+  --chart-1: #5c53fe;
+  --chart-2: #22c55e;
+  --chart-3: #f97316;
+  --chart-4: #eab308;
+  --chart-5: #06b6d4;
+  --brand: #5c53fe;
+  --brand-foreground: #ffffff;
+  --nav: #1a1a1f;
+  --nav-border: rgba(255, 255, 255, 0.07);
+  --sidebar: #0b0b10;
+  --sidebar-foreground: #ededef;
+  --sidebar-primary: #5c53fe;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1d1d24;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #5c53fe;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+}
