@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { LogOutIcon, MenuIcon } from "lucide-react"
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LogOutIcon, MenuIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -15,93 +15,100 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { authClient } from "@/lib/auth-client"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/sheet";
+import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/jobs", label: "Browse Jobs" },
   { href: "/companies", label: "Company" },
   { href: "/pricing", label: "Pricing" },
-] as const
+] as const;
 
 const authLinks = {
   signIn: { href: "/sign-in", label: "Sign In" },
   getStarted: { href: "/sign-up", label: "Get Started" },
-} as const
+} as const;
 
 function isActivePath(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+// User Profile  functinality
 function getInitials(name?: string | null, email?: string | null) {
-  const source = name?.trim() || email?.trim() || "HireLoop"
-  const parts = source.split(/\s+/).filter(Boolean)
+  const source = name?.trim() || email?.trim() || "HireLoop";
+  const parts = source.split(/\s+/).filter(Boolean);
   const initials =
     parts.length > 1
       ? `${parts[0][0]}${parts[parts.length - 1][0]}`
-      : source.slice(0, 2)
+      : source.slice(0, 2);
 
-  return initials.toUpperCase()
+  return initials.toUpperCase();
 }
 
+// Button
 const buttonBase =
-  "inline-flex items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+  "inline-flex items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
 
-const glassShadow = "shadow-[inset_0_3px_10px_rgba(255,255,255,0.18)]"
-const ctaShadow = "shadow-[inset_0_3px_10px_rgba(255,255,255,0.2)]"
+const glassShadow = "shadow-[inset_0_3px_10px_rgba(255,255,255,0.18)]";
+const ctaShadow = "shadow-[inset_0_3px_10px_rgba(255,255,255,0.2)]";
 
+// Signin Button
 const signInClasses = cn(
   buttonBase,
   "h-[38px] px-4 text-[17px] font-semibold text-[#645bff] hover:bg-white/5 hover:text-[#7b73ff]",
-  glassShadow
-)
+  glassShadow,
+);
 
+// Getstarted Button
 const getStartedClasses = cn(
   buttonBase,
   "h-[52px] bg-brand px-6 text-[17px] font-medium text-brand-foreground hover:bg-[#6d65ff]",
-  ctaShadow
-)
+  ctaShadow,
+);
 
 const Navbar = () => {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { data: session } = authClient.useSession()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [signingOut, setSigningOut] = useState(false)
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
-  const closeMobile = () => setMobileOpen(false)
+  const closeMobile = () => setMobileOpen(false);
 
+  // User ar profile a image or name dekanor function
   const initials = session
     ? getInitials(session.user.name, session.user.email)
-    : ""
+    : "";
 
+    // Logout Funcitoin
   const handleSignOut = async () => {
-    if (signingOut) return
+    if (signingOut) return;
 
-    setSigningOut(true)
+    setSigningOut(true);
 
     try {
-      await authClient.signOut()
-      closeMobile()
-      router.push("/")
-      router.refresh()
+      await authClient.signOut();
+      closeMobile();
+      router.push("/");
+      router.refresh();
     } catch (cause) {
-      console.error("[hireloop:navbar] sign out failed", cause)
+      console.error("[hireloop:navbar] sign out failed", cause);
     } finally {
-      setSigningOut(false)
+      setSigningOut(false);
     }
-  }
+  };
 
+  // Navbar Scrool Function
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => setScrolled(window.scrollY > 8);
 
-    onScroll()
-    window.addEventListener("scroll", onScroll, { passive: true })
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <header
@@ -109,7 +116,7 @@ const Navbar = () => {
         "sticky top-0 z-50 w-full transition-colors duration-300",
         scrolled
           ? "border-b border-white/5 bg-background/80 backdrop-blur-xl"
-          : "bg-transparent"
+          : "bg-transparent",
       )}
     >
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 py-4 sm:px-8 lg:px-10 xl:px-20">
@@ -135,7 +142,7 @@ const Navbar = () => {
         >
           <ul className="flex items-center gap-5">
             {navLinks.map((link) => {
-              const active = isActivePath(pathname, link.href)
+              const active = isActivePath(pathname, link.href);
 
               return (
                 <li key={link.href}>
@@ -144,13 +151,13 @@ const Navbar = () => {
                     aria-current={active ? "page" : undefined}
                     className={cn(
                       "rounded-md px-1 py-2 text-base text-foreground/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-                      active && "font-bold text-white"
+                      active && "font-bold text-white",
                     )}
                   >
                     {link.label}
                   </Link>
                 </li>
-              )
+              );
             })}
           </ul>
 
@@ -158,6 +165,7 @@ const Navbar = () => {
             <Separator orientation="vertical" className="bg-white/25" />
           </div>
 
+            {/* Dectop authentication section */}
           <div className="flex items-center gap-3">
             {session ? (
               <>
@@ -195,6 +203,8 @@ const Navbar = () => {
           </div>
         </nav>
 
+
+            {/* mobile navegation menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
             render={
@@ -239,7 +249,7 @@ const Navbar = () => {
               className="flex flex-col gap-1 p-3"
             >
               {navLinks.map((link) => {
-                const active = isActivePath(pathname, link.href)
+                const active = isActivePath(pathname, link.href);
 
                 return (
                   <Link
@@ -249,12 +259,12 @@ const Navbar = () => {
                     aria-current={active ? "page" : undefined}
                     className={cn(
                       "rounded-lg px-3 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-white/5 hover:text-white",
-                      active && "bg-white/5 text-white"
+                      active && "bg-white/5 text-white",
                     )}
                   >
                     {link.label}
                   </Link>
-                )
+                );
               })}
             </nav>
 
@@ -296,10 +306,7 @@ const Navbar = () => {
                   <Link
                     href={authLinks.getStarted.href}
                     onClick={closeMobile}
-                    className={cn(
-                      getStartedClasses,
-                      "h-12 w-full text-base"
-                    )}
+                    className={cn(getStartedClasses, "h-12 w-full text-base")}
                   >
                     {authLinks.getStarted.label}
                   </Link>
@@ -310,6 +317,6 @@ const Navbar = () => {
         </Sheet>
       </div>
     </header>
-  )
-}
-export default Navbar
+  );
+};
+export default Navbar;
