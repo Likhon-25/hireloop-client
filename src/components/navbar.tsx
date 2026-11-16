@@ -19,12 +19,6 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { href: "/jobs", label: "Browse Jobs" },
-  { href: "/companies", label: "Company" },
-  { href: "/pricing", label: "Pricing" },
-] as const;
-
 const authLinks = {
   signIn: { href: "/sign-in", label: "Sign In" },
   getStarted: { href: "/sign-up", label: "Get Started" },
@@ -75,6 +69,21 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
+  // Unknown or missing roles fall back to the seeker dashboard, same as the
+  // dashboard layout does.
+  const dashboardHref =
+    session?.user?.role === "recruiter" || session?.user?.role === "admin"
+      ? `/dashboard/${session.user.role}`
+      : "/dashboard/seeker";
+
+  const navLinks = [
+    { href: "/jobs", label: "Browse Jobs" },
+    { href: "/companies", label: "Company" },
+    { href: "/pricing", label: "Pricing" },
+    // The dashboard link only makes sense for signed-in users.
+    ...(session ? [{ href: dashboardHref, label: "Dashboard" }] : []),
+  ];
+
   const closeMobile = () => setMobileOpen(false);
 
   // User ar profile a image or name dekanor function
@@ -82,7 +91,7 @@ const Navbar = () => {
     ? getInitials(session.user.name, session.user.email)
     : "";
 
-    // Logout Funcitoin
+  // Logout Funcitoin
   const handleSignOut = async () => {
     if (signingOut) return;
 
@@ -109,6 +118,9 @@ const Navbar = () => {
 
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // The dashboard has its own sidebar layout, so the public navbar is hidden there.
+  if (pathname.startsWith("/dashboard")) return null;
 
   return (
     <header
@@ -165,7 +177,7 @@ const Navbar = () => {
             <Separator orientation="vertical" className="bg-white/25" />
           </div>
 
-            {/* Dectop authentication section */}
+          {/* Dectop authentication section */}
           <div className="flex items-center gap-3">
             {session ? (
               <>
@@ -203,8 +215,7 @@ const Navbar = () => {
           </div>
         </nav>
 
-
-            {/* mobile navegation menu */}
+        {/* mobile navegation menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
             render={
