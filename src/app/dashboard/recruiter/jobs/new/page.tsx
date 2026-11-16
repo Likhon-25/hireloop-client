@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { createJob } from "@/lib/actions/jobs";
 
 const jobCategories = [
   "Engineering & Tech",
@@ -45,6 +46,9 @@ type JobForm = {
   responsibilities: string;
   qualifications: string;
 };
+
+// The payload POSTed to the backend. Same fields the form collects.
+export type JobFormData = JobForm;
 
 const emptyForm: JobForm = {
   title: "",
@@ -116,20 +120,11 @@ const NewJobPage = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const res = await fetch("http://localhost:5000/jobs", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
+    const jobData: JobFormData = { ...form };
+    console.log(jobData);
 
-    if (!res.ok) {
-      console.error("[hireloop:new-job] request failed", res.status);
-      return;
-    }
-
-    setSubmitted(true);
+    const result =await createJob(jobData)
+    console.log("Create Job result", result);
   };
 
   return (
