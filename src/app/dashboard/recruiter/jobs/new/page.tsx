@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CalendarDays,
-  Check,
   ChevronDown,
   ChevronRight,
   Globe2,
   MapPin,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,8 +111,9 @@ const FieldLabel = ({
 );
 
 const NewJobPage = () => {
+  const router = useRouter();
   const [form, setForm] = useState<JobForm>(emptyForm);
-  const [submitted, setSubmitted] = useState(false);
+  const [pending, setPending] = useState(false);
 
   // A single updater keeps every field change to one line at the call site.
   const update = <K extends keyof JobForm>(key: K, value: JobForm[K]) =>
@@ -119,12 +121,25 @@ const NewJobPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setPending(true);
 
-    const jobData: JobFormData = { ...form };
-    console.log(jobData);
+    try {
+      const jobData: JobFormData = { ...form };
+      const result = await createJob(jobData);
 
-    const result = await createJob(jobData);
-    console.log("Create Job result", result);
+      if (result.insertedId) {
+        toast.success("Job posted successfully");
+        // Show the new post in the jobs table right away.
+        router.push("/dashboard/recruiter/jobs");
+        router.refresh();
+      } else {
+        toast.error("Could not post this job");
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -153,15 +168,6 @@ const NewJobPage = () => {
             Fill in the position specifications to attract qualified talent
             across our network.
           </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {submitted ? (
-            <span className="flex items-center gap-1.5 text-sm text-[#a0a0ab]">
-              <Check className="size-4 text-[#5c53fe]" />
-              Job published successfully
-            </span>
-          ) : null}
         </div>
       </header>
 
@@ -409,9 +415,10 @@ const NewJobPage = () => {
 
         <Button
           type="submit"
-          className="h-11 rounded-xl bg-[#5c53fe] px-6 text-sm font-medium text-white hover:bg-[#6b63ff]"
+          disabled={pending}
+          className="h-11 rounded-xl bg-[#5c53fe] px-6 text-sm font-medium text-white hover:bg-[#6b63ff] disabled:opacity-60"
         >
-          Publish Job
+          {pending ? "Publishing..." : "Publish Job"}
         </Button>
       </div>
     </form>

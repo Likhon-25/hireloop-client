@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState, type FormEvent } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BriefcaseBusinessIcon,
   CheckIcon,
@@ -10,24 +10,24 @@ import {
   EyeOffIcon,
   ShieldCheckIcon,
   UserRoundSearchIcon,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { authClient } from "@/lib/auth-client"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
-type AuthMode = "sign-in" | "sign-up"
+type AuthMode = "sign-in" | "sign-up";
 
 const tabs = [
   { mode: "sign-in", href: "/sign-in", label: "Sign In" },
   { mode: "sign-up", href: "/sign-up", label: "Sign Up" },
-] as const
+] as const;
 
 const fieldClasses =
-  "h-12 rounded-xl border-white/10 bg-white/[0.03] px-3.5 text-base text-white placeholder:text-white/35 focus-visible:border-brand/60 focus-visible:ring-brand/20 dark:bg-white/[0.03] md:text-base"
+  "h-12 rounded-xl border-white/10 bg-white/[0.03] px-3.5 text-base text-white placeholder:text-white/35 focus-visible:border-brand/60 focus-visible:ring-brand/20 dark:bg-white/[0.03] md:text-base";
 
 const roleOptions = [
   {
@@ -48,76 +48,82 @@ const roleOptions = [
     description: "Manage platform",
     icon: ShieldCheckIcon,
   },
-] as const
+] as const;
 
 const AuthForm = ({ mode }: { mode: AuthMode }) => {
-  const router = useRouter()
-  const isSignIn = mode === "sign-in"
+  const router = useRouter();
+  const isSignIn = mode === "sign-in";
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [pending, setPending] = useState(false)
-  const [selectedRole, setSelectedRole] = useState("seeker")
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("seeker");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
 
-    if (pending) return
+    if (pending) return;
 
-    setError(null)
+    setError(null);
 
-    const formData = new FormData(event.currentTarget)
-    const data = Object.fromEntries(formData.entries())
+    const formData = new FormData(event.currentTarget);
+    const data = Object.fromEntries(formData.entries());
 
-    const email = String(data.email ?? "").trim()
-    const password = String(data.password ?? "")
+    const email = String(data.email ?? "").trim();
+    const password = String(data.password ?? "");
 
-    const role = String(data.role ?? "seeker")
+    // Only these three roles exist, so anything else falls back to seeker.
+    const role: "seeker" | "recruiter" | "admin" =
+      String(data.role) === "recruiter"
+        ? "recruiter"
+        : String(data.role) === "admin"
+          ? "admin"
+          : "seeker";
 
     if (!isSignIn && password !== data.confirmPassword) {
-      setError("Passwords do not match. Please try again.")
-      return
+      setError("Passwords do not match. Please try again.");
+      return;
     }
 
-    setPending(true)
+    setPending(true);
 
     try {
-      let result
+      let result;
 
       if (isSignIn) {
         result = await authClient.signIn.email({
           email,
           password,
           rememberMe: data.rememberMe === "on",
-        })
+        });
       } else {
         const signUpData = {
           name: String(data.name ?? "").trim(),
           email,
           password,
           role,
-        }
+        };
 
-        result = await authClient.signUp.email(signUpData)
+        result = await authClient.signUp.email(signUpData);
       }
 
       if (result.error) {
         setError(
-          result.error.message ?? "Something went wrong. Please try again."
-        )
-        return
+          result.error.message ?? "Something went wrong. Please try again.",
+        );
+        return;
       }
 
-      router.push("/")
-      router.refresh()
+      router.push("/");
+      router.refresh();
     } catch (cause) {
-      console.error(`[hireloop:${mode}] auth request failed`, cause)
-      setError("Unable to reach the authentication server. Please try again.")
+      console.error(`[hireloop:${mode}] auth request failed`, cause);
+      setError("Unable to reach the authentication server. Please try again.");
     } finally {
-      setPending(false)
+      setPending(false);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-[460px]">
@@ -131,7 +137,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           {/* Sign In / Sign Up toggle */}
           <div className="grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
             {tabs.map((tab) => {
-              const active = tab.mode === mode
+              const active = tab.mode === mode;
 
               return (
                 <Link
@@ -142,12 +148,12 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                     "flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:outline-none",
                     active
                       ? "bg-white/[0.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-                      : "text-white/55 hover:text-white"
+                      : "text-white/55 hover:text-white",
                   )}
                 >
                   {tab.label}
                 </Link>
-              )
+              );
             })}
           </div>
 
@@ -198,8 +204,8 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
                   {roleOptions.map((role) => {
-                    const Icon = role.icon
-                    const selected = selectedRole === role.value
+                    const Icon = role.icon;
+                    const selected = selectedRole === role.value;
 
                     return (
                       <label
@@ -210,7 +216,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                           "hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] focus-within:ring-2 focus-within:ring-brand/60",
                           selected
                             ? "border-brand bg-brand/15 text-white shadow-[0_8px_24px_-12px_rgba(92,83,254,0.8)]"
-                            : "border-white/10 bg-white/[0.03] text-white/65"
+                            : "border-white/10 bg-white/[0.03] text-white/65",
                         )}
                       >
                         <input
@@ -225,27 +231,32 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                         />
                         {selected && (
                           <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-brand text-white shadow-lg">
-                            <CheckIcon aria-hidden="true" className="size-3 stroke-[3]" />
+                            <CheckIcon
+                              aria-hidden="true"
+                              className="size-3 stroke-[3]"
+                            />
                           </span>
                         )}
                         <Icon
                           aria-hidden="true"
                           className={cn(
                             "mb-2 size-5",
-                            selected ? "text-[#9c96ff]" : "text-white/45"
+                            selected ? "text-[#9c96ff]" : "text-white/45",
                           )}
                         />
-                        <span className="text-sm font-semibold">{role.label}</span>
+                        <span className="text-sm font-semibold">
+                          {role.label}
+                        </span>
                         <span
                           className={cn(
                             "mt-0.5 text-[10px] leading-4",
-                            selected ? "text-white/60" : "text-white/35"
+                            selected ? "text-white/60" : "text-white/35",
                           )}
                         >
                           {role.description}
                         </span>
                       </label>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -415,7 +426,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         </Link>
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default AuthForm
+export default AuthForm;

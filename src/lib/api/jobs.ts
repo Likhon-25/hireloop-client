@@ -1,7 +1,26 @@
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+export const getJobs = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/jobs`);
 
+    if (!res.ok) return [];
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-export const getJobs = async () =>{
-    const res = await fetch(`${BASE_URL}/jobs`)
     return res.json();
-}
+  } catch {
+    // The API may be down; an empty table is better than a crashed page.
+    return [];
+  }
+};
+
+export const getJob = async (id: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}/jobs/${id}`);
+
+    if (!res.ok) return null;
+
+    return res.json();
+  } catch {
+    return null;
+  }
+};

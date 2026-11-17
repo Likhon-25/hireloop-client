@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Briefcase,
   ChevronRight,
+  Eye,
   MapPin,
   Pencil,
   Plus,
@@ -171,6 +172,17 @@ const ManageJobsPage = async () => {
             </thead>
 
             <tbody>
+              {jobs.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-5 py-16 text-center text-sm text-[#a0a0ab]"
+                  >
+                    No job posts found.
+                  </td>
+                </tr>
+              ) : null}
+
               {jobs.map((job) => {
                 const status = getStatus(job);
                 const expired = status === "Expired";
@@ -266,6 +278,13 @@ const ManageJobsPage = async () => {
                           <Pencil className="size-3.5" />
                           Update
                         </button>
+                        <Link
+                          href={`/dashboard/recruiter/jobs/${job._id}`}
+                          aria-label={`View ${job.title}`}
+                          className="hidden size-8 items-center justify-center rounded-lg bg-[#1f1f1f] text-[#a0a0ab] transition-colors hover:text-white sm:inline-flex"
+                        >
+                          <Eye className="size-4" />
+                        </Link>
                         <DeleteJobDialog job={job} />
                       </div>
                     </td>
