@@ -123,7 +123,7 @@ const NewJobPage = () => {
     const jobData: JobFormData = { ...form };
     console.log(jobData);
 
-    const result =await createJob(jobData)
+    const result = await createJob(jobData);
     console.log("Create Job result", result);
   };
 
@@ -408,11 +408,11 @@ const NewJobPage = () => {
         </SectionCard>
 
         <Button
-            type="submit"
-            className="h-11 rounded-xl bg-[#5c53fe] px-6 text-sm font-medium text-white hover:bg-[#6b63ff]"
-          >
-            Publish Job
-          </Button>
+          type="submit"
+          className="h-11 rounded-xl bg-[#5c53fe] px-6 text-sm font-medium text-white hover:bg-[#6b63ff]"
+        >
+          Publish Job
+        </Button>
       </div>
     </form>
   );
