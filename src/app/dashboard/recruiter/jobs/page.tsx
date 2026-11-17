@@ -1,12 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import {
   Briefcase,
   ChevronRight,
-  Eye,
   MapPin,
-  MoreVertical,
   Pencil,
   Plus,
   Users,
@@ -14,6 +10,8 @@ import {
 
 import type { JobFormData } from "./new/page";
 import { cn } from "@/lib/utils";
+import { getJobs } from "@/lib/api/jobs";
+import { DeleteJobDialog } from "@/app/components/DeleteJobDialog";
 
 // Only the JobFormData fields this table shows, plus a few display-only values.
 type ManagedJob = Pick<
@@ -29,110 +27,12 @@ type ManagedJob = Pick<
   | "maxSalary"
   | "frequency"
 > & {
-  id: number;
-  applicants: number;
-  status: "Active" | "Expired";
-  posted: string;
+  _id: string;
+  // Not stored by the new job form yet, so they stay optional.
+  applicants?: number;
+  status?: "Active" | "Expired";
+  posted?: string;
 };
-
-const dummyJobs: ManagedJob[] = [
-  {
-    id: 1,
-    title: "Frontend Developer",
-    company: "HirePulse Network",
-    category: "Engineering & Tech",
-    type: "Full-time",
-    isRemote: true,
-    location: "New York, USA",
-    deadline: "2026-12-01",
-    minSalary: "25",
-    maxSalary: "40",
-    frequency: "per hour",
-    applicants: 34,
-    status: "Active",
-    posted: "Posted 4d ago",
-  },
-  {
-    id: 2,
-    title: "Senior Product Designer",
-    company: "HirePulse Labs",
-    category: "Design & Creative",
-    type: "Full-time",
-    isRemote: false,
-    location: "London, UK",
-    deadline: "2026-11-14",
-    minSalary: "90000",
-    maxSalary: "115000",
-    frequency: "per year",
-    applicants: 19,
-    status: "Active",
-    posted: "Posted 1w ago",
-  },
-  {
-    id: 3,
-    title: "DevOps Specialist",
-    company: "HirePulse Platform",
-    category: "Engineering & Tech",
-    type: "Full-time",
-    isRemote: false,
-    location: "Berlin, Germany",
-    deadline: "2026-11-30",
-    minSalary: "95000",
-    maxSalary: "120000",
-    frequency: "per year",
-    applicants: 12,
-    status: "Active",
-    posted: "Posted 2w ago",
-  },
-  {
-    id: 4,
-    title: "Product Marketing Lead",
-    company: "HirePulse Network",
-    category: "Marketing & Sales",
-    type: "Full-time",
-    isRemote: true,
-    location: "EU / US",
-    deadline: "2026-12-15",
-    minSalary: "80000",
-    maxSalary: "105000",
-    frequency: "per year",
-    applicants: 27,
-    status: "Active",
-    posted: "Posted 5d ago",
-  },
-  {
-    id: 5,
-    title: "QA Automation Engineer",
-    company: "HirePulse Platform",
-    category: "Engineering & Tech",
-    type: "Part-time",
-    isRemote: false,
-    location: "Dublin, Ireland",
-    deadline: "2026-10-01",
-    minSalary: "35",
-    maxSalary: "50",
-    frequency: "per hour",
-    applicants: 8,
-    status: "Expired",
-    posted: "Closed",
-  },
-  {
-    id: 6,
-    title: "Customer Success Manager",
-    company: "HirePulse Network",
-    category: "Customer Support",
-    type: "Contract",
-    isRemote: true,
-    location: "Remote",
-    deadline: "2026-12-20",
-    minSalary: "30",
-    maxSalary: "45",
-    frequency: "per hour",
-    applicants: 14,
-    status: "Active",
-    posted: "Posted 3d ago",
-  },
-];
 
 // Each department gets its own accent, same idea as the Figma rows.
 const categoryColors: Record<string, string> = {
@@ -148,8 +48,13 @@ const categoryColors: Record<string, string> = {
 const categoryColor = (category: string) =>
   categoryColors[category] ?? categoryColors.Other;
 
-const formatMoney = (value: string) =>
-  value ? Number(value).toLocaleString("en-US") : "—";
+const formatMoney = (value: string) => {
+  const amount = Number(value);
+
+  return value && !Number.isNaN(amount)
+    ? amount.toLocaleString("en-US")
+    : value || "—";
+};
 
 // "25 – 40 / hour" or "90,000 – 115,000 / year"
 const formatSalary = (job: ManagedJob) =>
@@ -166,6 +71,11 @@ const formatDeadline = (value: string) =>
 
 const locationLabel = (job: ManagedJob) =>
   job.isRemote ? `Remote (${job.location})` : job.location;
+
+// No status is stored yet, so a deadline in the past counts as expired.
+const getStatus = (job: ManagedJob): "Active" | "Expired" =>
+  job.status ??
+  (job.deadline && new Date(job.deadline) < new Date() ? "Expired" : "Active");
 
 const StatusPill = ({ status }: { status: ManagedJob["status"] }) => {
   const active = status === "Active";
@@ -191,7 +101,10 @@ const StatusPill = ({ status }: { status: ManagedJob["status"] }) => {
 const thClasses =
   "px-3 py-3.5 text-[11px] font-medium tracking-wider whitespace-nowrap text-[#a0a0ab]";
 
-const ManageJobsPage = () => {
+const ManageJobsPage = async () => {
+  // Typed here because getJobs() returns the raw JSON from the API.
+  const jobs: ManagedJob[] = await getJobs();
+
   return (
     <div className="mx-auto max-w-[1395px]">
       {/* Breadcrumb + page title + create action */}
@@ -255,12 +168,13 @@ const ManageJobsPage = () => {
             </thead>
 
             <tbody>
-              {dummyJobs.map((job) => {
-                const expired = job.status === "Expired";
+              {jobs.map((job) => {
+                const status = getStatus(job);
+                const expired = status === "Expired";
 
                 return (
                   <tr
-                    key={job.id}
+                    key={job._id}
                     className="border-t border-[#232327] transition-colors hover:bg-white/[0.02]"
                   >
                     {/* Job title + department */}
@@ -313,13 +227,13 @@ const ManageJobsPage = () => {
                     <td className="hidden px-3 py-4 lg:table-cell">
                       <span className="flex items-center gap-1.5 text-[13px] whitespace-nowrap text-[#c3c0ff]">
                         <Users className="size-4" />
-                        {job.applicants} Candidates
+                        {job.applicants ?? 0} Candidates
                       </span>
                     </td>
 
                     {/* Status */}
                     <td className="px-3 py-4">
-                      <StatusPill status={job.status} />
+                      <StatusPill status={status} />
                     </td>
 
                     {/* Deadline */}
@@ -332,9 +246,11 @@ const ManageJobsPage = () => {
                       >
                         {formatDeadline(job.deadline)}
                       </p>
-                      <p className="text-xs whitespace-nowrap text-[#5a5a60]">
-                        {job.posted}
-                      </p>
+                      {job.posted ? (
+                        <p className="text-xs whitespace-nowrap text-[#5a5a60]">
+                          {job.posted}
+                        </p>
+                      ) : null}
                     </td>
 
                     {/* Actions */}
@@ -347,20 +263,7 @@ const ManageJobsPage = () => {
                           <Pencil className="size-3.5" />
                           Update
                         </button>
-                        <button
-                          type="button"
-                          aria-label={`Preview ${job.title}`}
-                          className="hidden size-8 items-center justify-center rounded-lg bg-[#1f1f1f] text-[#a0a0ab] transition-colors hover:text-white sm:inline-flex"
-                        >
-                          <Eye className="size-4" />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`More actions for ${job.title}`}
-                          className="inline-flex size-8 items-center justify-center rounded-lg text-[#a1a4aa] transition-colors hover:bg-[#1f1f1f] hover:text-white"
-                        >
-                          <MoreVertical className="size-4" />
-                        </button>
+                        <DeleteJobDialog />
                       </div>
                     </td>
                   </tr>
