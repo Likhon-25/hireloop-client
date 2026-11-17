@@ -101,6 +101,9 @@ const StatusPill = ({ status }: { status: ManagedJob["status"] }) => {
 const thClasses =
   "px-3 py-3.5 text-[11px] font-medium tracking-wider whitespace-nowrap text-[#a0a0ab]";
 
+// The table reads live jobs from the API, so the route renders per request.
+export const instant = false;
+
 const ManageJobsPage = async () => {
   // Typed here because getJobs() returns the raw JSON from the API.
   const jobs: ManagedJob[] = await getJobs();
@@ -263,7 +266,7 @@ const ManageJobsPage = async () => {
                           <Pencil className="size-3.5" />
                           Update
                         </button>
-                        <DeleteJobDialog />
+                        <DeleteJobDialog job={job} />
                       </div>
                     </td>
                   </tr>
