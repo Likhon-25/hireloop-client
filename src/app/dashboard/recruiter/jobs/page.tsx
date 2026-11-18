@@ -9,7 +9,7 @@ import {
   Users,
 } from "lucide-react";
 
-import type { JobFormData } from "./new/page";
+import type { JobFormData } from "@/app/components/JobPostForm";
 import { cn } from "@/lib/utils";
 import { getJobs } from "@/lib/api/jobs";
 import { DeleteJobDialog } from "@/app/components/DeleteJobDialog";
@@ -271,13 +271,14 @@ const ManageJobsPage = async () => {
                     {/* Actions */}
                     <td className="py-4 pr-5 pl-3">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
+                        <Link
+                          href={`/dashboard/recruiter/jobs/${job._id}/edit`}
+                          aria-label={`Update ${job.title}`}
                           className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#5c53fe] px-3 text-xs font-medium text-[#c3c0ff] transition-colors hover:bg-[#6b63ff]"
                         >
                           <Pencil className="size-3.5" />
                           Update
-                        </button>
+                        </Link>
                         <Link
                           href={`/dashboard/recruiter/jobs/${job._id}`}
                           aria-label={`View ${job.title}`}

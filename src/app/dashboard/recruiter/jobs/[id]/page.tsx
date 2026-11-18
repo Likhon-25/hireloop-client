@@ -10,7 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import type { JobFormData } from "../new/page";
+import type { JobFormData } from "@/app/components/JobPostForm";
 import { getJob } from "@/lib/api/jobs";
 
 type JobDetails = JobFormData & { _id: string };
