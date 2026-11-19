@@ -19,13 +19,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { deleteJob } from "@/lib/actions/jobs";
+import type { Job } from "@/types/job";
 
 // The dialog only needs these two fields from the job.
 type DeleteJobDialogProps = {
-  job: {
-    _id: string;
-    title: string;
-  };
+  job: Pick<Job, "_id" | "title">;
 };
 
 export function DeleteJobDialog({ job }: DeleteJobDialogProps) {

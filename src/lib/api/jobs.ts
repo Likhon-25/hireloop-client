@@ -1,6 +1,9 @@
+import type { Job } from "@/types/job";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-export const getJobs = async () => {
+
+export const getJobs = async (): Promise<Job[]> => {
   try {
     const res = await fetch(`${BASE_URL}/jobs`);
 
@@ -13,7 +16,7 @@ export const getJobs = async () => {
   }
 };
 
-export const getJob = async (id: string) => {
+export const getJob = async (id: string): Promise<Job | null> => {
   try {
     const res = await fetch(`${BASE_URL}/jobs/${id}`);
 

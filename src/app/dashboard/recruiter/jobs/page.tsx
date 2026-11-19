@@ -1,39 +1,18 @@
 import Link from "next/link";
-import {
-  Briefcase,
-  ChevronRight,
-  Eye,
-  MapPin,
-  Pencil,
-  Plus,
-  Users,
-} from "lucide-react";
+import { Briefcase, MapPin, Plus, Users } from "lucide-react";
 
-import type { JobFormData } from "@/app/components/JobPostForm";
-import { cn } from "@/lib/utils";
+import { JobActions } from "@/app/components/JobActions";
+import { JobStatusPill } from "@/app/components/JobStatusPill";
+import { PageHeader } from "@/app/components/PageHeader";
 import { getJobs } from "@/lib/api/jobs";
-import { DeleteJobDialog } from "@/app/components/DeleteJobDialog";
-
-// Only the JobFormData fields this table shows, plus a few display-only values.
-type ManagedJob = Pick<
-  JobFormData,
-  | "title"
-  | "company"
-  | "category"
-  | "type"
-  | "isRemote"
-  | "location"
-  | "deadline"
-  | "minSalary"
-  | "maxSalary"
-  | "frequency"
-> & {
-  _id: string;
-  // Not stored by the new job form yet, so they stay optional.
-  applicants?: number;
-  status?: "Active" | "Expired";
-  posted?: string;
-};
+import {
+  formatDeadline,
+  formatSalary,
+  getJobStatus,
+  locationLabel,
+} from "@/lib/job";
+import { cn } from "@/lib/utils";
+import type { Job } from "@/types/job";
 
 // Each department gets its own accent, same idea as the Figma rows.
 const categoryColors: Record<string, string> = {
@@ -49,56 +28,6 @@ const categoryColors: Record<string, string> = {
 const categoryColor = (category: string) =>
   categoryColors[category] ?? categoryColors.Other;
 
-const formatMoney = (value: string) => {
-  const amount = Number(value);
-
-  return value && !Number.isNaN(amount)
-    ? amount.toLocaleString("en-US")
-    : value || "—";
-};
-
-// "25 – 40 / hour" or "90,000 – 115,000 / year"
-const formatSalary = (job: ManagedJob) =>
-  `$${formatMoney(job.minSalary)} – $${formatMoney(job.maxSalary)} / ${job.frequency.replace("per ", "")}`;
-
-const formatDeadline = (value: string) =>
-  value
-    ? new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      })
-    : "—";
-
-const locationLabel = (job: ManagedJob) =>
-  job.isRemote ? `Remote (${job.location})` : job.location;
-
-// No status is stored yet, so a deadline in the past counts as expired.
-const getStatus = (job: ManagedJob): "Active" | "Expired" =>
-  job.status ??
-  (job.deadline && new Date(job.deadline) < new Date() ? "Expired" : "Active");
-
-const StatusPill = ({ status }: { status: ManagedJob["status"] }) => {
-  const active = status === "Active";
-
-  return (
-    <span
-      className={cn(
-        "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium",
-        active ? "bg-[#14532d] text-[#4ade80]" : "bg-[#1f1f1f] text-[#a0a0ab]",
-      )}
-    >
-      <span
-        className={cn(
-          "size-1.5 rounded-full",
-          active ? "bg-[#4ade80]" : "bg-[#5a5a60]",
-        )}
-      />
-      {status}
-    </span>
-  );
-};
-
 const thClasses =
   "px-3 py-3.5 text-[11px] font-medium tracking-wider whitespace-nowrap text-[#a0a0ab]";
 
@@ -107,44 +36,28 @@ export const instant = false;
 
 const ManageJobsPage = async () => {
   // Typed here because getJobs() returns the raw JSON from the API.
-  const jobs: ManagedJob[] = await getJobs();
+  const jobs: Job[] = await getJobs();
 
   return (
     <div className="mx-auto max-w-[1395px]">
-      {/* Breadcrumb + page title + create action */}
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <nav
-            aria-label="Breadcrumb"
-            className="flex items-center gap-1 text-sm text-[#a0a0ab]"
+      <PageHeader
+        breadcrumb={[
+          { label: "Manage Jobs", href: "/dashboard/recruiter/jobs" },
+          { label: "Job Listings & Postings", className: "text-[#c3c0ff]" },
+        ]}
+        title="Manage Job Posts"
+        description="Review live listings, monitor applicants, and update job details across your organization."
+        descriptionClassName="max-w-[580px]"
+        action={
+          <Link
+            href="/dashboard/recruiter/jobs/new"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#5c53fe] px-5 text-sm font-medium text-white transition-colors hover:bg-[#6b63ff]"
           >
-            <Link
-              href="/dashboard/recruiter/jobs"
-              className="transition-colors hover:text-white"
-            >
-              Manage Jobs
-            </Link>
-            <ChevronRight className="size-3.5 text-[#5a5a60]" />
-            <span className="text-[#c3c0ff]">Job Listings &amp; Postings</span>
-          </nav>
-
-          <h1 className="mt-2 text-[28px] leading-tight font-semibold text-white">
-            Manage Job Posts
-          </h1>
-          <p className="mt-1 max-w-[580px] text-sm text-[#a0a0ab]">
-            Review live listings, monitor applicants, and update job details
-            across your organization.
-          </p>
-        </div>
-
-        <Link
-          href="/dashboard/recruiter/jobs/new"
-          className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#5c53fe] px-5 text-sm font-medium text-white transition-colors hover:bg-[#6b63ff]"
-        >
-          <Plus className="size-4" />
-          New Job Post
-        </Link>
-      </header>
+            <Plus className="size-4" />
+            New Job Post
+          </Link>
+        }
+      />
 
       {/* Scrolls sideways on narrow screens so no column gets squeezed */}
       <div className="overflow-hidden rounded-2xl border border-[#232327] bg-[#151516]">
@@ -184,7 +97,7 @@ const ManageJobsPage = async () => {
               ) : null}
 
               {jobs.map((job) => {
-                const status = getStatus(job);
+                const status = getJobStatus(job);
                 const expired = status === "Expired";
 
                 return (
@@ -248,7 +161,7 @@ const ManageJobsPage = async () => {
 
                     {/* Status */}
                     <td className="px-3 py-4">
-                      <StatusPill status={status} />
+                      <JobStatusPill status={status} />
                     </td>
 
                     {/* Deadline */}
@@ -270,24 +183,7 @@ const ManageJobsPage = async () => {
 
                     {/* Actions */}
                     <td className="py-4 pr-5 pl-3">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Link
-                          href={`/dashboard/recruiter/jobs/${job._id}/edit`}
-                          aria-label={`Update ${job.title}`}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#5c53fe] px-3 text-xs font-medium text-[#c3c0ff] transition-colors hover:bg-[#6b63ff]"
-                        >
-                          <Pencil className="size-3.5" />
-                          Update
-                        </Link>
-                        <Link
-                          href={`/dashboard/recruiter/jobs/${job._id}`}
-                          aria-label={`View ${job.title}`}
-                          className="hidden size-8 items-center justify-center rounded-lg bg-[#1f1f1f] text-[#a0a0ab] transition-colors hover:text-white sm:inline-flex"
-                        >
-                          <Eye className="size-4" />
-                        </Link>
-                        <DeleteJobDialog job={job} />
-                      </div>
+                      <JobActions job={job} />
                     </td>
                   </tr>
                 );

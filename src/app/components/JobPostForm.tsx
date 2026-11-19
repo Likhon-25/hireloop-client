@@ -1,53 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  CalendarDays,
-  ChevronDown,
-  ChevronRight,
-  Globe2,
-  MapPin,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, Globe2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/app/components/PageHeader";
+import { SectionCard } from "@/app/components/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { createJob, updateJob } from "@/lib/actions/jobs";
+import { JOB_CATEGORIES, JOB_FREQUENCIES, JOB_TYPES } from "@/lib/job";
+import { cn } from "@/lib/utils";
+import type { JobFormData } from "@/types/job";
 
-const jobCategories = [
-  "Engineering & Tech",
-  "Design & Creative",
-  "Product & Management",
-  "Marketing & Sales",
-  "Finance & Accounting",
-  "Customer Support",
-  "Other",
-];
-
-const jobTypes = ["Full-time", "Part-time", "Contract", "Internship"];
-
-const frequencies = ["per hour", "per month", "per year"];
-
-// One flat object keeps the form data easy to read, log and send later.
-export type JobFormData = {
-  title: string;
-  company: string;
-  category: string;
-  type: string;
-  isRemote: boolean;
-  location: string;
-  deadline: string;
-  minSalary: string;
-  maxSalary: string;
-  frequency: string;
-  responsibilities: string;
-  qualifications: string;
-};
-
+// What the form starts with when no job is being edited.
 const emptyForm: JobFormData = {
   title: "",
   company: "",
@@ -71,21 +39,9 @@ const fieldClasses =
 const selectClasses =
   "h-11 w-full appearance-none rounded-xl border border-[#232327] bg-[#1e1e21] pr-10 pl-4 text-sm text-white outline-none transition-colors focus:border-[#5c53fe]";
 
-const SectionCard = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <section className="rounded-2xl bg-[#151516] p-6">
-    <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-      <span className="size-2 rounded-full bg-[#5c53fe]" />
-      {title}
-    </h2>
-    <div className="mt-5 space-y-5">{children}</div>
-  </section>
-);
+// Both textareas look the same.
+const textareaClasses =
+  "min-h-[98px] w-full resize-y rounded-xl border border-[#232327] bg-[#1e1e21] px-4 py-3.5 text-sm leading-relaxed text-[#f4f4f5] outline-none placeholder:text-[#5a5a60] focus:border-[#5c53fe]";
 
 const FieldLabel = ({
   htmlFor,
@@ -160,42 +116,26 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-[984px]">
-      {/* Breadcrumb + page title + the single submit action */}
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <nav
-            aria-label="Breadcrumb"
-            className="flex flex-wrap items-center gap-1 text-sm text-[#a0a0ab]"
-          >
-            <Link
-              href="/dashboard/recruiter/jobs"
-              className="transition-colors hover:text-white"
-            >
-              Manage Jobs
-            </Link>
-            <ChevronRight className="size-3.5 text-[#5a5a60]" />
-
-            {isEdit ? (
-              <>
-                <span>Job Listings &amp; Postings</span>
-                <ChevronRight className="size-3.5 text-[#5a5a60]" />
-                <span className="text-white">Update Job Post</span>
-              </>
-            ) : (
-              <span className="text-white">Create New Listing</span>
-            )}
-          </nav>
-
-          <h1 className="mt-2 text-[28px] leading-tight font-semibold text-white">
-            {isEdit ? "Update Job Post" : "Post a New Job"}
-          </h1>
-          <p className="mt-1 max-w-[632px] text-sm text-[#a0a0ab]">
-            {isEdit
-              ? "Modify position specifications, compensation range, and candidate requirements for this listing."
-              : "Fill in the position specifications to attract qualified talent across our network."}
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        breadcrumb={
+          isEdit
+            ? [
+                { label: "Manage Jobs", href: "/dashboard/recruiter/jobs" },
+                { label: "Job Listings & Postings" },
+                { label: "Update Job Post" },
+              ]
+            : [
+                { label: "Manage Jobs", href: "/dashboard/recruiter/jobs" },
+                { label: "Create New Listing" },
+              ]
+        }
+        title={isEdit ? "Update Job Post" : "Post a New Job"}
+        description={
+          isEdit
+            ? "Modify position specifications, compensation range, and candidate requirements for this listing."
+            : "Fill in the position specifications to attract qualified talent across our network."
+        }
+      />
 
       <div className="space-y-6">
         {/* 1. Basic Information */}
@@ -239,7 +179,7 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
                   )}
                 >
                   <option value="">Select category</option>
-                  {jobCategories.map((category) => (
+                  {JOB_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -253,7 +193,7 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
           <div>
             <FieldLabel>Job Type *</FieldLabel>
             <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
-              {jobTypes.map((type) => {
+              {JOB_TYPES.map((type) => {
                 const active = form.type === type;
 
                 return (
@@ -392,7 +332,7 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
                   onChange={(event) => update("frequency", event.target.value)}
                   className={selectClasses}
                 >
-                  {frequencies.map((frequency) => (
+                  {JOB_FREQUENCIES.map((frequency) => (
                     <option key={frequency} value={frequency}>
                       {frequency}
                     </option>
@@ -418,7 +358,7 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
                 update("responsibilities", event.target.value)
               }
               placeholder="Collaborate with designers and backend engineers to craft responsive, micro-interaction rich products."
-              className="min-h-[98px] w-full resize-y rounded-xl border border-[#232327] bg-[#1e1e21] px-4 py-3.5 text-sm leading-relaxed text-[#f4f4f5] outline-none placeholder:text-[#5a5a60] focus:border-[#5c53fe]"
+              className={textareaClasses}
             />
           </div>
 
@@ -434,7 +374,7 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
               placeholder={
                 "• 3+ years of experience with React and TypeScript\n• Solid understanding of DOM performance\n• Experience partnering closely with UI/UX designers"
               }
-              className="min-h-[98px] w-full resize-y rounded-xl border border-[#232327] bg-[#1e1e21] px-4 py-3.5 text-sm leading-relaxed text-[#f4f4f5] outline-none placeholder:text-[#5a5a60] focus:border-[#5c53fe]"
+              className={textareaClasses}
             />
           </div>
         </SectionCard>

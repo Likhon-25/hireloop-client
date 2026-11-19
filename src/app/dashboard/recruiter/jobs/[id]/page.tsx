@@ -4,36 +4,19 @@ import {
   ArrowLeft,
   Briefcase,
   CalendarDays,
-  ChevronRight,
   Globe2,
   MapPin,
   Wallet,
 } from "lucide-react";
 
-import type { JobFormData } from "@/app/components/JobPostForm";
+import { PageHeader } from "@/app/components/PageHeader";
+import { SectionCard } from "@/app/components/SectionCard";
 import { getJob } from "@/lib/api/jobs";
-
-type JobDetails = JobFormData & { _id: string };
+import { formatDeadline, formatMoney } from "@/lib/job";
+import type { Job } from "@/types/job";
 
 // The details come from the API on every request.
 export const instant = false;
-
-const formatMoney = (value: string) => {
-  const amount = Number(value);
-
-  return value && !Number.isNaN(amount)
-    ? amount.toLocaleString("en-US")
-    : value || "—";
-};
-
-const formatDeadline = (value: string) =>
-  value
-    ? new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      })
-    : "—";
 
 const DetailItem = ({
   icon: Icon,
@@ -61,114 +44,91 @@ const JobDetailsPage = async ({
   params: Promise<{ id: string }>;
 }) => {
   const { id } = await params;
-  const job: JobDetails | null = await getJob(id);
+  const job: Job | null = await getJob(id);
 
   if (!job) notFound();
 
+  // Every value shown in the overview grid, so the markup stays short.
+  const overview = [
+    { icon: Briefcase, label: "Company", value: job.company },
+    { icon: Briefcase, label: "Job Category", value: job.category },
+    { icon: Briefcase, label: "Job Type", value: job.type },
+    {
+      icon: Globe2,
+      label: "Work Mode",
+      value: job.isRemote ? "Remote" : "On-site",
+    },
+    { icon: MapPin, label: "Location", value: job.location },
+    {
+      icon: CalendarDays,
+      label: "Application Deadline",
+      value: formatDeadline(job.deadline),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-[984px]">
-      <nav
-        aria-label="Breadcrumb"
-        className="flex items-center gap-1 text-sm text-[#a0a0ab]"
-      >
-        <Link
-          href="/dashboard/recruiter/jobs"
-          className="transition-colors hover:text-white"
-        >
-          Manage Jobs
-        </Link>
-        <ChevronRight className="size-3.5 text-[#5a5a60]" />
-        <span className="truncate text-white">{job.title}</span>
-      </nav>
-
-      <header className="mt-2 mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-[28px] leading-tight font-semibold text-white">
-            {job.title}
-          </h1>
+      <PageHeader
+        className="items-start"
+        breadcrumb={[
+          { label: "Manage Jobs", href: "/dashboard/recruiter/jobs" },
+          { label: job.title },
+        ]}
+        title={job.title}
+        meta={
           <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[#a0a0ab]">
             <span>{job.company}</span>
             <span className="size-1 rounded-full bg-[#5a5a60]" />
             <span className="text-[#c3c0ff]">{job.category}</span>
           </p>
-        </div>
-
-        <Link
-          href="/dashboard/recruiter/jobs"
-          className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#232327] bg-[#1e1e21] px-4 text-sm font-medium text-white transition-colors hover:bg-[#232327]"
-        >
-          <ArrowLeft className="size-4" />
-          Back to jobs
-        </Link>
-      </header>
+        }
+        action={
+          <Link
+            href="/dashboard/recruiter/jobs"
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#232327] bg-[#1e1e21] px-4 text-sm font-medium text-white transition-colors hover:bg-[#232327]"
+          >
+            <ArrowLeft className="size-4" />
+            Back to jobs
+          </Link>
+        }
+      />
 
       <div className="space-y-6">
-        <section className="rounded-2xl bg-[#151516] p-6">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-            <span className="size-2 rounded-full bg-[#5c53fe]" />
-            Job Overview
-          </h2>
+        <SectionCard
+          title="Job Overview"
+          bodyClassName="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {overview.map((item) => (
+            <DetailItem key={item.label} {...item} />
+          ))}
+        </SectionCard>
 
-          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <DetailItem icon={Briefcase} label="Company" value={job.company} />
-            <DetailItem
-              icon={Briefcase}
-              label="Job Category"
-              value={job.category}
-            />
-            <DetailItem icon={Briefcase} label="Job Type" value={job.type} />
-            <DetailItem
-              icon={Globe2}
-              label="Work Mode"
-              value={job.isRemote ? "Remote" : "On-site"}
-            />
-            <DetailItem icon={MapPin} label="Location" value={job.location} />
-            <DetailItem
-              icon={CalendarDays}
-              label="Application Deadline"
-              value={formatDeadline(job.deadline)}
-            />
-          </div>
-        </section>
-
-        <section className="rounded-2xl bg-[#151516] p-6">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-            <span className="size-2 rounded-full bg-[#5c53fe]" />
-            Compensation
-          </h2>
-
-          <div className="mt-5 flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-[#232327]">
-              <Wallet className="size-4 text-[#5c53fe]" />
+        <SectionCard
+          title="Compensation"
+          bodyClassName="mt-5 flex items-center gap-2.5"
+        >
+          <span className="flex size-9 items-center justify-center rounded-lg bg-[#232327]">
+            <Wallet className="size-4 text-[#5c53fe]" />
+          </span>
+          <p className="text-lg font-semibold text-white">
+            ${formatMoney(job.minSalary)} – ${formatMoney(job.maxSalary)}
+            <span className="ml-1 text-sm font-normal text-[#a0a0ab]">
+              / {job.frequency.replace("per ", "")}
             </span>
-            <p className="text-lg font-semibold text-white">
-              ${formatMoney(job.minSalary)} – ${formatMoney(job.maxSalary)}
-              <span className="ml-1 text-sm font-normal text-[#a0a0ab]">
-                / {job.frequency.replace("per ", "")}
-              </span>
-            </p>
-          </div>
-        </section>
+          </p>
+        </SectionCard>
 
-        <section className="rounded-2xl bg-[#151516] p-6">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-            <span className="size-2 rounded-full bg-[#5c53fe]" />
-            Key Responsibilities
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed whitespace-pre-line text-[#d4d4d8]">
+        <SectionCard title="Key Responsibilities" bodyClassName="mt-4">
+          <p className="text-sm leading-relaxed whitespace-pre-line text-[#d4d4d8]">
             {job.responsibilities || "No responsibilities added."}
           </p>
-        </section>
+        </SectionCard>
 
-        <section className="rounded-2xl bg-[#151516] p-6">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-white">
-            <span className="size-2 rounded-full bg-[#5c53fe]" />
-            Qualifications &amp; Requirements
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed whitespace-pre-line text-[#d4d4d8]">
+        <SectionCard title="Qualifications & Requirements" bodyClassName="mt-4">
+          <p className="text-sm leading-relaxed whitespace-pre-line text-[#d4d4d8]">
             {job.qualifications || "No qualifications added."}
           </p>
-        </section>
+        </SectionCard>
       </div>
     </div>
   );
