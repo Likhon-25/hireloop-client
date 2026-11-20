@@ -1,36 +1,38 @@
-import { Check } from "lucide-react";
+"use client"; 
 
+import { Check } from "lucide-react";
 import { JOB_CATEGORIES, JOB_TYPES } from "@/lib/job";
 import type { Job } from "@/types/job";
 
-// Counts how many jobs share each value, e.g. { "Full-time": 12 }.
+// Counts how many jobs share each value
 const countBy = (values: string[]) => {
   const counts: Record<string, number> = {};
-
   for (const value of values) {
     counts[value] = (counts[value] ?? 0) + 1;
   }
-
   return counts;
 };
 
-// One row of the sidebar: checkbox (or radio), label and job count.
+// FilterOption
 const FilterOption = ({
   name,
   value,
   count,
   single,
+  onSelect,
 }: {
   name: string;
   value: string;
   count: number;
   single?: boolean;
+  onSelect?: () => void;
 }) => (
   <label className="flex cursor-pointer items-center gap-2.5">
     <input
       type={single ? "radio" : "checkbox"}
       name={name}
       value={value}
+      onChange={onSelect} 
       className="peer sr-only"
     />
 
@@ -47,6 +49,7 @@ const FilterOption = ({
   </label>
 );
 
+// FilterGroup
 const FilterGroup = ({
   title,
   name,
@@ -58,7 +61,6 @@ const FilterGroup = ({
   name: string;
   options: string[];
   counts: Record<string, number>;
-  // true = radio buttons (only one option at a time).
   single?: boolean;
 }) => (
   <div>
@@ -72,14 +74,13 @@ const FilterGroup = ({
           value={option}
           count={counts[option] ?? 0}
           single={single}
+          onSelect={() => console.log(`${title} ${option}`)}
         />
       ))}
     </div>
   </div>
 );
 
-// Sidebar filters from the Figma design. Nothing is wired yet, so checking a
-// box only changes its own state.
 export function JobFilters({ jobs }: { jobs: Job[] }) {
   const workModeCounts = {
     Remote: jobs.filter((job) => job.isRemote).length,

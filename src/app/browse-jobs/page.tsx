@@ -6,8 +6,18 @@ import { getJobs } from "@/lib/api/jobs";
 // Jobs are read from the API on every request.
 export const instant = false;
 
-const BrowseJobsPage = async () => {
-  const jobs = await getJobs();
+const BrowseJobsPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) => {
+  // ১. URL থেকে searchParams গ্রহণ করা
+  const search = await searchParams;
+  const urlSearch = new URLSearchParams(search as Record<string, string>);
+  const query = urlSearch.toString();
+
+  // ২. ব্যাকএন্ডের API-তে search=developer কুয়েরি পাঠানো
+  const jobs = await getJobs(query);
 
   return (
     <main className="flex-1 bg-[#08080a] pb-16">
