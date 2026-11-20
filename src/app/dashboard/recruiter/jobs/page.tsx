@@ -6,6 +6,7 @@ import { JobStatusPill } from "@/app/components/JobStatusPill";
 import { PageHeader } from "@/app/components/PageHeader";
 import { getJobs } from "@/lib/api/jobs";
 import {
+  categoryColor,
   formatDeadline,
   formatSalary,
   getJobStatus,
@@ -13,20 +14,6 @@ import {
 } from "@/lib/job";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types/job";
-
-// Each department gets its own accent, same idea as the Figma rows.
-const categoryColors: Record<string, string> = {
-  "Engineering & Tech": "#38bdf8",
-  "Design & Creative": "#f97316",
-  "Product & Management": "#5c53fe",
-  "Marketing & Sales": "#c3c0ff",
-  "Finance & Accounting": "#4ade80",
-  "Customer Support": "#818cf8",
-  Other: "#a0a0ab",
-};
-
-const categoryColor = (category: string) =>
-  categoryColors[category] ?? categoryColors.Other;
 
 const thClasses =
   "px-3 py-3.5 text-[11px] font-medium tracking-wider whitespace-nowrap text-[#a0a0ab]";

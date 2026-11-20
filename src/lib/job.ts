@@ -15,6 +15,20 @@ export const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"];
 
 export const JOB_FREQUENCIES = ["per hour", "per month", "per year"];
 
+// Each category gets its own accent, used for company logos and labels.
+const CATEGORY_COLORS: Record<string, string> = {
+  "Engineering & Tech": "#38bdf8",
+  "Design & Creative": "#f97316",
+  "Product & Management": "#5c53fe",
+  "Marketing & Sales": "#c3c0ff",
+  "Finance & Accounting": "#4ade80",
+  "Customer Support": "#818cf8",
+  Other: "#a0a0ab",
+};
+
+export const categoryColor = (category: string) =>
+  CATEGORY_COLORS[category] ?? CATEGORY_COLORS.Other;
+
 // 25000 -> "25,000". Empty or non-numeric values are shown as they are.
 export const formatMoney = (value: string) => {
   const amount = Number(value);
@@ -38,9 +52,9 @@ export const formatDeadline = (value: string) =>
 export const formatSalary = (job: JobFormData) =>
   `$${formatMoney(job.minSalary)} – $${formatMoney(job.maxSalary)} / ${job.frequency.replace("per ", "")}`;
 
-// "Remote (Dhaka, BD)" for remote jobs, otherwise just the location.
+// "Dhaka, BD (Remote)" for remote jobs, otherwise just the location.
 export const locationLabel = (job: JobFormData) =>
-  job.isRemote ? `Remote (${job.location})` : job.location;
+  job.isRemote ? `${job.location} (Remote)` : job.location;
 
 // No status is stored yet, so a past deadline counts as expired.
 export const getJobStatus = (
