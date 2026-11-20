@@ -1,6 +1,8 @@
-"use client"; 
+"use client";
 
+import React from "react";
 import { Check } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation"; // ১. রাউটার এবং সার্চ প্যারামস ইমপোর্ট
 import { JOB_CATEGORIES, JOB_TYPES } from "@/lib/job";
 import type { Job } from "@/types/job";
 
@@ -19,20 +21,23 @@ const FilterOption = ({
   value,
   count,
   single,
-  onSelect,
+  checked,
+  onChange,
 }: {
   name: string;
   value: string;
   count: number;
   single?: boolean;
-  onSelect?: () => void;
+  checked: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) => (
   <label className="flex cursor-pointer items-center gap-2.5">
     <input
       type={single ? "radio" : "checkbox"}
       name={name}
       value={value}
-      onChange={onSelect} 
+      checked={checked} // URL অনুযায়ী টিক চিহ্ন ধরে রাখবে
+      onChange={onChange} // ক্লিক করলে URL পরিবর্তন করার হ্যান্ডলার
       className="peer sr-only"
     />
 
@@ -56,12 +61,16 @@ const FilterGroup = ({
   options,
   counts,
   single = false,
+  selectedValues,
+  onChange,
 }: {
   title: string;
   name: string;
   options: string[];
   counts: Record<string, number>;
   single?: boolean;
+  selectedValues: string | null;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) => (
   <div>
     <h3 className="text-base font-semibold text-[#ededef]">{title}</h3>
@@ -74,7 +83,8 @@ const FilterGroup = ({
           value={option}
           count={counts[option] ?? 0}
           single={single}
-          onSelect={() => console.log(`${title} ${option}`)}
+          checked={selectedValues === option} // যদি এই অপশনটি সিলেক্টেড থাকে
+          onChange={onChange}
         />
       ))}
     </div>
@@ -82,10 +92,53 @@ const FilterGroup = ({
 );
 
 export function JobFilters({ jobs }: { jobs: Job[] }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const workModeCounts = {
     Remote: jobs.filter((job) => job.isRemote).length,
     "On-site": jobs.filter((job) => !job.isRemote).length,
   };
+
+  // ২. চেকবক্স বা অপশনে ক্লিক করলে URL পরিবর্তন করার মূল ফাংশন
+  const handleCheckBoxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, checked } = event.target;
+
+    // বর্তমান URL-এ যা যা প্যারামিটার আছে তা কপি করা হচ্ছে (যাতে search মুছে না যায়)
+    const params = new URLSearchParams(searchParams.toString());
+
+    console.log(`Clicked Filter: ${name} -> ${value}`);
+
+    // Work Mode হলে ব্যাকএন্ডের সাথে মিলিয়ে isRemote হ্যান্ডেল করা
+    if (name === "workMode") {
+      if (checked) {
+        params.set("isRemote", value === "Remote" ? "true" : "false");
+      } else {
+        params.delete("isRemote");
+      }
+    } else {
+      // type বা category হলে
+      if (checked) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+    }
+
+    // ৩. নতুন URL পুশ করা হচ্ছে (এর ফলে ব্রাউজারের URL স্বয়ংক্রিয়ভাবে চেঞ্জ হবে)
+    router.push(`/browse-jobs?${params.toString()}`);
+  };
+
+  // URL এ বর্তমানে কোনটি সিলেক্ট করা আছে তা বের করা
+  const currentType = searchParams.get("type");
+  const currentCategory = searchParams.get("category");
+  const currentIsRemote = searchParams.get("isRemote");
+  const currentWorkMode =
+    currentIsRemote === "true"
+      ? "Remote"
+      : currentIsRemote === "false"
+        ? "On-site"
+        : null;
 
   return (
     <aside
@@ -95,27 +148,37 @@ export function JobFilters({ jobs }: { jobs: Job[] }) {
       <h2 className="text-[22px] font-semibold text-[#ededef]">Filters</h2>
 
       <div className="mt-6 space-y-6">
+        {/* Job Type Filter */}
         <FilterGroup
           title="Job Type"
           name="type"
           options={JOB_TYPES}
           counts={countBy(jobs.map((job) => job.type))}
           single
+          selectedValues={currentType}
+          onChange={handleCheckBoxChange}
         />
 
+        {/* Category Filter */}
         <FilterGroup
           title="Category"
           name="category"
           options={JOB_CATEGORIES}
           counts={countBy(jobs.map((job) => job.category))}
           single
+          selectedValues={currentCategory}
+          onChange={handleCheckBoxChange}
         />
 
+        {/* Work Mode Filter */}
         <FilterGroup
           title="Work Mode"
           name="workMode"
           options={["Remote", "On-site"]}
           counts={workModeCounts}
+          single
+          selectedValues={currentWorkMode}
+          onChange={handleCheckBoxChange}
         />
       </div>
     </aside>

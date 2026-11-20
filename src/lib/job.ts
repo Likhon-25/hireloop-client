@@ -49,12 +49,34 @@ export const formatDeadline = (value: string) =>
     : "—";
 
 // "$25 – $40 / hour"
-export const formatSalary = (job: JobFormData) =>
-  `$${formatMoney(job.minSalary)} – $${formatMoney(job.maxSalary)} / ${job.frequency.replace("per ", "")}`;
+export const formatSalary = (job: JobFormData) => {
+  const frequency = job.frequency
+    ? ` / ${job.frequency.replace("per ", "")}`
+    : "";
+
+  return `$${formatMoney(job.minSalary)} – $${formatMoney(job.maxSalary)}${frequency}`;
+};
 
 // "Dhaka, BD (Remote)" for remote jobs, otherwise just the location.
-export const locationLabel = (job: JobFormData) =>
-  job.isRemote ? `${job.location} (Remote)` : job.location;
+export const locationLabel = (job: JobFormData) => {
+  if (!job.location) return "";
+
+  return job.isRemote ? `${job.location} (Remote)` : job.location;
+};
+
+// Splits a textarea value into clean lines and drops any leading bullet marks.
+export const toBulletList = (value?: string) =>
+  (value ?? "")
+    .split("\n")
+    .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+    .filter(Boolean);
+
+// "Figma, UI/UX Design" -> ["Figma", "UI/UX Design"]
+export const toTagList = (value?: string) =>
+  (value ?? "")
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
 
 // No status is stored yet, so a past deadline counts as expired.
 export const getJobStatus = (
@@ -77,4 +99,6 @@ export const toFormValues = (job: Partial<Job>): JobFormData => ({
   frequency: job.frequency ?? "per hour",
   responsibilities: job.responsibilities ?? "",
   qualifications: job.qualifications ?? "",
+  skills: job.skills ?? "",
+  benefits: job.benefits ?? "",
 });

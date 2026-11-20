@@ -29,6 +29,8 @@ const emptyForm: JobFormData = {
   frequency: "per hour",
   responsibilities: "",
   qualifications: "",
+  skills: "",
+  benefits: "",
 };
 
 // Shared styling so every input matches the Figma 44px dark field.
@@ -373,6 +375,34 @@ export function JobPostForm({ jobId, initialValues }: JobPostFormProps) {
               onChange={(event) => update("qualifications", event.target.value)}
               placeholder={
                 "• 3+ years of experience with React and TypeScript\n• Solid understanding of DOM performance\n• Experience partnering closely with UI/UX designers"
+              }
+              className={textareaClasses}
+            />
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="job-skills" hint="comma separated">
+              Requirement Tags
+            </FieldLabel>
+            <Input
+              id="job-skills"
+              value={form.skills}
+              onChange={(event) => update("skills", event.target.value)}
+              placeholder="Figma, UI/UX Design, System Thinking"
+              className={fieldClasses}
+            />
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="job-benefits" hint="one per line">
+              Benefits
+            </FieldLabel>
+            <textarea
+              id="job-benefits"
+              value={form.benefits}
+              onChange={(event) => update("benefits", event.target.value)}
+              placeholder={
+                "• Full Health & Dental\n• Competitive 401k\n• Latest Hardware Stipend\n• Unlimited PTO"
               }
               className={textareaClasses}
             />

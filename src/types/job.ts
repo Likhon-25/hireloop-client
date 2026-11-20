@@ -12,6 +12,10 @@ export type JobFormData = {
   frequency: string;
   responsibilities: string;
   qualifications: string;
+  // Comma separated tags shown as chips on the details page.
+  skills: string;
+  // One benefit per line.
+  benefits: string;
 };
 
 // The table shows Active or Expired, worked out from the deadline.

@@ -1,3 +1,6 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import {
   Bookmark,
   Briefcase,
@@ -54,11 +57,15 @@ const JobBadge = ({
 
 // One job card, matching the Figma "Article - Job Card" design.
 export function JobCard({ job }: { job: Job }) {
+  const router = useRouter();
   const expired = getJobStatus(job) === "Expired";
   const initial = job.company?.charAt(0).toUpperCase() || "?";
 
   return (
-    <article className="rounded-2xl border border-white/7 bg-[#141418] p-6 transition-colors hover:border-white/15">
+    <article
+      onClick={() => router.push(`/browse-jobs/${job._id}`)}
+      className="cursor-pointer rounded-2xl border border-white/7 bg-[#141418] p-6 transition-all hover:-translate-y-0.5 hover:border-white/15"
+    >
       <div className="flex gap-5">
         {/* Company logo placeholder, tinted with the category color */}
         <span
@@ -72,7 +79,7 @@ export function JobCard({ job }: { job: Job }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="truncate text-xl font-semibold text-[#ededef] sm:text-[22px]">
+              <h3 className="truncate text-xl font-semibold text-[#ededef] transition-colors hover:text-[#5c53fe] sm:text-[22px]">
                 {job.title}
               </h3>
               <p className="mt-1 truncate text-sm font-semibold text-[#6e6e78] sm:text-base">
@@ -83,6 +90,9 @@ export function JobCard({ job }: { job: Job }) {
 
             <button
               type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               aria-label={`Save ${job.title}`}
               className="flex size-10 shrink-0 items-center justify-center rounded-lg text-[#8e9192] transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5c53fe] focus-visible:outline-none"
             >
