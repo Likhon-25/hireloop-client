@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   BriefcaseBusinessIcon,
   CheckIcon,
@@ -52,6 +52,9 @@ const roleOptions = [
 
 const AuthForm = ({ mode }: { mode: AuthMode }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo") || "/";
+
   const isSignIn = mode === "sign-in";
 
   const [showPassword, setShowPassword] = useState(false);
@@ -115,7 +118,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         return;
       }
 
-      router.push("/");
+      router.push(redirectTo);
       router.refresh();
     } catch (cause) {
       console.error(`[hireloop:${mode}] auth request failed`, cause);
@@ -138,11 +141,15 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           <div className="grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
             {tabs.map((tab) => {
               const active = tab.mode === mode;
+              const tabHref =
+                redirectTo && redirectTo !== "/"
+                  ? `${tab.href}?redirectTo=${encodeURIComponent(redirectTo)}`
+                  : tab.href;
 
               return (
                 <Link
                   key={tab.mode}
-                  href={tab.href}
+                  href={tabHref}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:outline-none",

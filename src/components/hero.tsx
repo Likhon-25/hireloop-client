@@ -55,7 +55,7 @@ const Hero = () => {
           </p>
 
           {/* Job search */}
-          <form action="/jobs" method="get" className="mt-10 w-full sm:mt-12">
+          <form action="/browse-jobs" method="get" className="mt-10 w-full sm:mt-12">
             <div className="flex w-full flex-col rounded-2xl border border-white/20 bg-[#101010] p-2 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)] sm:h-16 sm:flex-row sm:items-center">
               <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-lg px-4 transition-colors focus-within:bg-white/[0.04]">
                 <SearchIcon
@@ -64,7 +64,7 @@ const Hero = () => {
                 />
                 <input
                   type="search"
-                  name="q"
+                  name="search"
                   placeholder="Job title, skill or company"
                   aria-label="Job title, skill or company"
                   className="h-full w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-white/60 sm:text-base"

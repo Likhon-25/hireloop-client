@@ -1,14 +1,19 @@
-import type { Metadata } from "next"
+import { Suspense } from "react";
+import type { Metadata } from "next";
 
-import AuthForm from "@/components/auth/auth-form"
+import AuthForm from "@/components/auth/auth-form";
 
 export const metadata: Metadata = {
   title: "Sign In — HireLoop",
   description: "Sign in to your HireLoop account and continue your job search.",
-}
+};
 
 const SignInPage = () => {
-  return <AuthForm mode="sign-in" />
-}
+  return (
+    <Suspense fallback={null}>
+      <AuthForm mode="sign-in" />
+    </Suspense>
+  );
+};
 
-export default SignInPage
+export default SignInPage;

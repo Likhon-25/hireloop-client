@@ -1,13 +1,53 @@
-import { BadgeCheck, Bookmark, TriangleAlert } from "lucide-react";
+"use client";
 
+import { BadgeCheck, Bookmark, TriangleAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { useSession } from "@/lib/auth-client";
 import { categoryColor, getJobStatus } from "@/lib/job";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types/job";
+import { applyToAJob } from "@/lib/actions/application";
 
 // Top card of the Figma job details page.
 export function JobDetailsHeader({ job }: { job: Job }) {
   const active = getJobStatus(job) === "Active";
   const initial = job.company?.charAt(0).toUpperCase() || "?";
+
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  // Apply Now বাটন হ্যান্ডলার
+  const handleApplyNow = async () => {
+    // ইউজার যদি লগইন না থাকে, তবে জবের পেজের লিংকসহ সাইন-ইন পেজে পাঠানো হবে
+    if (!session?.user) {
+      router.push(`/sign-in?redirectTo=/browse-jobs/${job._id}`);
+      return;
+    }
+
+    // Debug: actual role দেখার জন্য
+    console.log("Current user role:", session.user.role);
+
+    // শুধুমাত্র seeker role এর ইউজার apply করতে পারবে
+    if (session.user.role === "seeker") {
+      console.log("Save the application to the database ");
+
+      const application = {
+        jobId: job._id,
+        userId: session.user.id,
+        email: session.user.email,
+      };
+      const response = await applyToAJob(application);
+      if (response.insertedId) {
+        console.log("Application Submitted Successfully");
+        alert("Application submitted successfully!");
+        router.push(`/browse-jobs`);
+      }
+    } else {
+      // recruiter বা admin apply করতে পারবে না
+      alert(`Only job seekers can apply! Your role: ${session.user.role}`);
+    }
+  };
 
   return (
     <header className="rounded-2xl border border-white/7 bg-[#141418] p-6 sm:p-8">
@@ -66,6 +106,7 @@ export function JobDetailsHeader({ job }: { job: Job }) {
           <button
             type="button"
             disabled={!active}
+            onClick={handleApplyNow}
             className="h-12 rounded-lg bg-[#fafafa] px-5 text-base font-medium text-[#0b0b0c] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {active ? "Apply Now" : "Applications Closed"}

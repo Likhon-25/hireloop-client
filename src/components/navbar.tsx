@@ -77,7 +77,7 @@ const Navbar = () => {
       : "/dashboard/seeker";
 
   const navLinks = [
-    { href: "/jobs", label: "Browse Jobs" },
+    { href: "/browse-jobs", label: "Browse Jobs" },
     { href: "/companies", label: "Company" },
     { href: "/pricing", label: "Pricing" },
     // The dashboard link only makes sense for signed-in users.
