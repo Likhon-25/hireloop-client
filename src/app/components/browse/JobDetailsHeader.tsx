@@ -4,9 +4,11 @@ import { BadgeCheck, Bookmark, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useSession } from "@/lib/auth-client";
+import { workModeLabel } from "@/lib/application";
 import { categoryColor, getJobStatus } from "@/lib/job";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types/job";
+import type { NewApplication } from "@/types/application";
 import { applyToAJob } from "@/lib/actions/application";
 
 // Top card of the Figma job details page.
@@ -32,10 +34,18 @@ export function JobDetailsHeader({ job }: { job: Job }) {
     if (session.user.role === "seeker") {
       console.log("Save the application to the database ");
 
-      const application = {
+      const application: NewApplication = {
         jobId: job._id,
+        jobTitle: job.title,
+        company: job.company,
+        jobType: job.type,
+        workMode: workModeLabel(job.isRemote),
+        location: job.location,
         userId: session.user.id,
+        name: session.user.name,
         email: session.user.email,
+        status: "Review",
+        appliedAt: new Date().toISOString(),
       };
       const response = await applyToAJob(application);
       if (response.insertedId) {
